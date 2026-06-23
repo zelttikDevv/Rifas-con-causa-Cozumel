@@ -167,13 +167,17 @@ export function generarIdTransaccion(): string {
 export function generarEnlaceWhatsApp(
   idTransaccion: string,
   numeros: string[],
-  nombreRifa: string
+  nombreRifa: string,
+  nombreCliente: string,
+  telefonoCliente: string
 ): string {
   const numero = process.env.NEXT_PUBLIC_WHATSAPP_NUMERO || '';
   const mensaje = `Hola, quiero confirmar mi reserva.\n\n` +
     `🎟️ Rifa: ${nombreRifa}\n` +
+    ` Nombre: ${nombreCliente}\n` +
+    `📞 Teléfono: ${telefonoCliente}\n` +
     `🆔 ID de transacción: ${idTransaccion}\n` +
     `🔢 Números: ${numeros.join(', ')}\n\n` +
     `¿Cómo puedo realizar el pago?`;
   return `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
-                                        }
+}
