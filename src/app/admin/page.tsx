@@ -51,13 +51,11 @@ export default function AdminPage() {
     setTimeout(() => setMensaje(null), 5000);
   }
 
-  // Extraer número de teléfono del campo cliente
   const extraerTelefono = (cliente: string): string | null => {
     const match = cliente.match(/Tel:\s*(\d+)/);
     return match ? match[1] : null;
   };
 
-  // Generar enlace de WhatsApp para contactar al cliente
   const generarEnlaceContacto = (telefono: string, idTransaccion: string, numeros: string[]) => {
     const mensaje = `Hola, te contactamos respecto a tu reserva de rifa.\n\n` +
       `ID de transacción: ${idTransaccion}\n` +
@@ -65,6 +63,23 @@ export default function AdminPage() {
       `¿Cómo deseas realizar el pago?`;
     
     return `https://wa.me/52${telefono}?text=${encodeURIComponent(mensaje)}`;
+  };
+
+  const formatearFecha = (fechaString: string) => {
+    if (!fechaString) return 'Fecha no disponible';
+    try {
+      const fecha = new Date(fechaString);
+      if (isNaN(fecha.getTime())) return 'Fecha inválida';
+      return fecha.toLocaleString('es-MX', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch {
+      return 'Fecha no disponible';
+    }
   };
 
   const reservasFiltradas = filtroRifa
@@ -127,23 +142,13 @@ export default function AdminPage() {
               <div key={reserva.idTransaccion} className="bg-white rounded-lg shadow-md p-5 border border-gray-100">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
                       <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-md text-xs font-semibold">
                         {reserva.idTransaccion}
                       </span>
-                      // Busca esta línea y reemplázala:
-<span className="text-sm text-gray-500">
-  {reserva.fechaReserva 
-    ? new Date(reserva.fechaReserva).toLocaleString('es-MX', { 
-        day: '2-digit', 
-        month: '2-digit', 
-        year: 'numeric', 
-        hour: '2-digit', 
-        minute: '2-digit' 
-      })
-    : 'Fecha no disponible'
-  }
-</span>
+                      <span className="text-sm text-gray-500">
+                        {formatearFecha(reserva.fechaReserva)}
+                      </span>
                     </div>
                     
                     <p className="text-sm text-gray-600 mb-2">
@@ -191,4 +196,4 @@ export default function AdminPage() {
       )}
     </main>
   );
-        }
+    }
