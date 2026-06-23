@@ -131,7 +131,19 @@ export default function AdminPage() {
                       <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-md text-xs font-semibold">
                         {reserva.idTransaccion}
                       </span>
-                      <span className="text-sm text-gray-500">{reserva.fechaReserva}</span>
+                      // Busca esta línea y reemplázala:
+<span className="text-sm text-gray-500">
+  {reserva.fechaReserva 
+    ? new Date(reserva.fechaReserva).toLocaleString('es-MX', { 
+        day: '2-digit', 
+        month: '2-digit', 
+        year: 'numeric', 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      })
+    : 'Fecha no disponible'
+  }
+</span>
                     </div>
                     
                     <p className="text-sm text-gray-600 mb-2">
