@@ -18,17 +18,60 @@ export default function CrearRifaPage() {
 
     const formData = new FormData(e.currentTarget);
 
+    const nombre = formData.get('nombre') as string;
+    const descripcion = formData.get('descripcion') as string;
+    const fechaInicioStr = formData.get('fechaInicio') as string;
+    const fechaFinStr = formData.get('fechaFin') as string;
+    const tipoSorteo = formData.get('tipoSorteo') as TipoSorteo;
+    const premios = formData.get('premios') as string;
+    const totalBoletos = parseInt(formData.get('totalBoletos') as string);
+    const estado = (formData.get('estado') as EstadoRifa) || 'ACTIVA';
+    const urlFacebook = formData.get('urlFacebook') as string;
+
+    // Validaciones
+    if (!nombre.trim()) {
+      setMensaje('❌ El nombre de la rifa es obligatorio');
+      setLoading(false);
+      return;
+    }
+
+    if (totalBoletos < 1 || totalBoletos > 10000) {
+      setMensaje('❌ El total de boletos debe estar entre 1 y 10,000');
+      setLoading(false);
+      return;
+    }
+
+    const fechaInicio = fechaInicioStr ? new Date(fechaInicioStr) : new Date();
+    const fechaFin = new Date(fechaFinStr);
+
+    if (isNaN(fechaFin.getTime())) {
+      setMensaje('❌ La fecha de fin no es válida');
+      setLoading(false);
+      return;
+    }
+
+    if (fechaInicio >= fechaFin) {
+      setMensaje('❌ La fecha de inicio debe ser anterior a la fecha de fin');
+      setLoading(false);
+      return;
+    }
+
+    if (fechaInicio < new Date()) {
+      setMensaje('⚠️ La fecha de inicio es en el pasado. ¿Deseas continuar?');
+      // No detenemos el proceso, solo advertimos
+    }
+
     try {
       const resultado = await crearRifa({
-        nombre: formData.get('nombre') as string,
-        descripcion: formData.get('descripcion') as string,
-        fechaInicio: formData.get('fechaInicio') as string,
-        fechaFin: formData.get('fechaFin') as string,
-        tipoSorteo: formData.get('tipoSorteo') as TipoSorteo,
-        premios: formData.get('premios') as string,
-        totalBoletos: parseInt(formData.get('totalBoletos') as string),
-        estado: (formData.get('estado') as EstadoRifa) || 'ACTIVA',
-        urlFacebook: formData.get('urlFacebook') as string,
+        nombre,
+        descripcion,
+        fechaInicio: fechaInicio.toISOString(),
+        fechaFin: fechaFin.toISOString(),
+        tipoSorteo,
+        premios,
+        totalBoletos,
+        estado,
+        urlFacebook,
       });
 
       if (resultado.ok) {
@@ -95,6 +138,7 @@ export default function CrearRifaPage() {
               type="datetime-local"
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
             />
+            <p className="text-xs text-gray-500 mt-1">Déjalo vacío para iniciar ahora</p>
           </div>
 
           <div>
@@ -149,6 +193,7 @@ export default function CrearRifaPage() {
             placeholder="Ej. 100"
             className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
           />
+          <p className="text-xs text-gray-500 mt-1">Máximo 10,000 boletos por rifa</p>
         </div>
 
         <div>
