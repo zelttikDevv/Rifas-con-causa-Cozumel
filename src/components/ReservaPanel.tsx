@@ -17,13 +17,37 @@ export default function ReservaPanel({
   onReservaExitosa,
   maxSeleccion,
 }: ReservaPanelProps) {
-  const [cliente, setCliente] = useState('');
+  const [nombre, setNombre] = useState('');
+  const [telefono, setTelefono] = useState('');
   const [cargando, setCargando] = useState(false);
   const [mensaje, setMensaje] = useState<{ tipo: 'ok' | 'error'; texto: string } | null>(null);
 
+  const validarTelefono = (tel: string) => {
+    // Elimina espacios, guiones y paréntesis
+    const limpio = tel.replace(/[\s\-\(\)]/g, '');
+    // Valida que sean 10 dígitos (México) o 10-15 dígitos (internacional)
+    return /^\d{10,15}$/.test(limpio);
+  };
+
   const handleConfirmar = async () => {
+    // Validaciones
     if (seleccionados.length === 0) {
       setMensaje({ tipo: 'error', texto: 'Selecciona al menos un número' });
+      return;
+    }
+
+    if (!nombre.trim()) {
+      setMensaje({ tipo: 'error', texto: 'Ingresa tu nombre completo (como aparece en tu INE)' });
+      return;
+    }
+
+    if (!telefono.trim()) {
+      setMensaje({ tipo: 'error', texto: 'Ingresa tu número de teléfono' });
+      return;
+    }
+
+    if (!validarTelefono(telefono)) {
+      setMensaje({ tipo: 'error', texto: 'El teléfono debe tener 10 dígitos' });
       return;
     }
 
@@ -32,6 +56,7 @@ export default function ReservaPanel({
 
     try {
       const idTransaccion = generarIdTransaccion();
+      const cliente = `${nombre.trim()} - Tel: ${telefono.trim()}`;
       const resultado = await reservarBoletos(rifa.id, seleccionados, idTransaccion, cliente);
 
       if (!resultado.ok) {
@@ -41,7 +66,7 @@ export default function ReservaPanel({
       }
 
       // Abrir WhatsApp
-      const enlace = generarEnlaceWhatsApp(idTransaccion, seleccionados, rifa.nombre);
+      const enlace = generarEnlaceWhatsApp(idTransaccion, seleccionados, rifa.nombre, nombre.trim(), telefono.trim());
       window.open(enlace, '_blank');
 
       setMensaje({
@@ -87,14 +112,29 @@ export default function ReservaPanel({
 
       <div className="mb-4">
         <label className="block text-sm font-semibold text-gray-700 mb-1">
-          Tu nombre (opcional)
+          Nombre completo * <span className="text-xs text-gray-500 font-normal">(como aparece en tu INE)</span>
         </label>
         <input
           type="text"
-          value={cliente}
-          onChange={(e) => setCliente(e.target.value)}
-          placeholder="Ej. Juan Pérez"
+          value={nombre}
+          onChange={(e) => setNombre(e.target.value)}
+          placeholder="Ej. Juan Pérez García"
           className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          required
+        />
+      </div>
+
+      <div className="mb-4">
+        <label className="block text-sm font-semibold text-gray-700 mb-1">
+          Número de teléfono * <span className="text-xs text-gray-500 font-normal">(10 dígitos)</span>
+        </label>
+        <input
+          type="tel"
+          value={telefono}
+          onChange={(e) => setTelefono(e.target.value)}
+          placeholder="Ej. 9871234567"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          required
         />
       </div>
 
@@ -130,4 +170,4 @@ export default function ReservaPanel({
       </p>
     </div>
   );
-}
+            }
