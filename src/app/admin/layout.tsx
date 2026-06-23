@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import AdminMenu from '@/components/AdminMenu';
 
 const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_TOKEN;
 
@@ -77,7 +78,7 @@ export default function AdminLayout({
       <nav className="bg-white shadow-md">
         <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
           <div className="flex items-center gap-4">
-            <h1 className="text-xl font-bold text-gray-800">🎟️ Admin - Rifas Cozumel</h1>
+            <h1 className="text-xl font-bold text-gray-800">️ Admin - Rifas Cozumel</h1>
           </div>
           <div className="flex items-center gap-3">
             <Link href="/" className="text-sm text-gray-600 hover:text-primary">
@@ -92,7 +93,11 @@ export default function AdminLayout({
           </div>
         </div>
       </nav>
-      {children}
+
+      <div className="max-w-7xl mx-auto px-4 py-4">
+        <AdminMenu />
+        {children}
+      </div>
     </div>
   );
-      }
+}
