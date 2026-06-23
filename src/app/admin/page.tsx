@@ -51,6 +51,22 @@ export default function AdminPage() {
     setTimeout(() => setMensaje(null), 5000);
   }
 
+  // Extraer número de teléfono del campo cliente
+  const extraerTelefono = (cliente: string): string | null => {
+    const match = cliente.match(/Tel:\s*(\d+)/);
+    return match ? match[1] : null;
+  };
+
+  // Generar enlace de WhatsApp para contactar al cliente
+  const generarEnlaceContacto = (telefono: string, idTransaccion: string, numeros: string[]) => {
+    const mensaje = `Hola, te contactamos respecto a tu reserva de rifa.\n\n` +
+      `ID de transacción: ${idTransaccion}\n` +
+      `Números: ${numeros.join(', ')}\n\n` +
+      `¿Cómo deseas realizar el pago?`;
+    
+    return `https://wa.me/52${telefono}?text=${encodeURIComponent(mensaje)}`;
+  };
+
   const reservasFiltradas = filtroRifa
     ? reservas.filter((r) => r.idRifa === filtroRifa)
     : reservas;
@@ -104,57 +120,63 @@ export default function AdminPage() {
 
       {!loading && reservasFiltradas.length > 0 && (
         <div className="space-y-4">
-          {reservasFiltradas.map((reserva) => (
-            <div key={reserva.idTransaccion} className="bg-white rounded-lg shadow-md p-5 border border-gray-100">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-md text-xs font-semibold">
-                      {reserva.idTransaccion}
-                    </span>
-                    <span className="text-sm text-gray-500">{reserva.fechaReserva}</span>
-                  </div>
-                  
-                  <p className="text-sm text-gray-600 mb-2">
-                    <span className="font-semibold">Rifa:</span> {obtenerNombreRifa(reserva.idRifa)}
-                  </p>
-                  
-                  <p className="text-sm text-gray-600 mb-2">
-                    <span className="font-semibold">Números:</span>{' '}
-                    <span className="font-mono font-semibold text-gray-800">
-                      {reserva.numeros.join(', ')}
-                    </span>
-                  </p>
-                  
-                  {reserva.cliente && (
-                    <p className="text-sm text-gray-600">
-                      <span className="font-semibold">Cliente:</span> {reserva.cliente}
+          {reservasFiltradas.map((reserva) => {
+            const telefono = extraerTelefono(reserva.cliente);
+            
+            return (
+              <div key={reserva.idTransaccion} className="bg-white rounded-lg shadow-md p-5 border border-gray-100">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-md text-xs font-semibold">
+                        {reserva.idTransaccion}
+                      </span>
+                      <span className="text-sm text-gray-500">{reserva.fechaReserva}</span>
+                    </div>
+                    
+                    <p className="text-sm text-gray-600 mb-2">
+                      <span className="font-semibold">Rifa:</span> {obtenerNombreRifa(reserva.idRifa)}
                     </p>
-                  )}
-                </div>
+                    
+                    <p className="text-sm text-gray-600 mb-2">
+                      <span className="font-semibold">Números:</span>{' '}
+                      <span className="font-mono font-semibold text-gray-800">
+                        {reserva.numeros.join(', ')}
+                      </span>
+                    </p>
+                    
+                    {reserva.cliente && (
+                      <p className="text-sm text-gray-600">
+                        <span className="font-semibold">Cliente:</span> {reserva.cliente}
+                      </p>
+                    )}
+                  </div>
 
-                <div className="flex flex-col gap-2">
-                  <a
-                    href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMERO}?text=Hola%20respecto%20a%20tu%20reserva%20${reserva.idTransaccion}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md text-sm font-semibold text-center transition-colors"
-                  >
-                    💬 Contactar
-                  </a>
-                  
-                  <button
-                    onClick={() => handleConfirmarPago(reserva.idRifa, reserva.idTransaccion)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-semibold transition-colors"
-                  >
-                    ✅ Confirmar Pago
-                  </button>
+                  <div className="flex flex-col gap-2">
+                    {telefono && (
+                      <a
+                        href={generarEnlaceContacto(telefono, reserva.idTransaccion, reserva.numeros)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md text-sm font-semibold text-center transition-colors"
+                      >
+                        💬 Contactar
+                      </a>
+                    )}
+                    
+                    <button
+                      onClick={() => handleConfirmarPago(reserva.idRifa, reserva.idTransaccion)}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-semibold transition-colors"
+                    >
+                      ✅ Confirmar Pago
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </main>
   );
-    }
+        }
