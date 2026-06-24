@@ -62,7 +62,12 @@ export async function getRifasActivas(): Promise<Rifa[]> {
   if (!data.ok) throw new Error(data.mensaje || 'Error al cargar rifas');
   return data.rifas;
 }
-
+/** Lista todas las rifas finalizadas o canceladas */
+export async function getRifasFinalizadas(): Promise<Rifa[]> {
+  const data = await get<RifasResponse>({ action: 'getRifasFinalizadas' });
+  if (!data.ok) throw new Error(data.mensaje || 'Error al cargar rifas finalizadas');
+  return data.rifas;
+}
 /** Obtiene una rifa por su slug */
 export async function getRifaPorSlug(slug: string): Promise<Rifa> {
   const data = await get<RifaResponse>({ action: 'getRifaPorSlug', slug });
