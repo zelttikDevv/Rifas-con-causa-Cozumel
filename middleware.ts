@@ -5,35 +5,60 @@ export function middleware(request: NextRequest) {
   const sessionCookie = request.cookies.get('admin_session');
   const pathname = request.nextUrl.pathname;
 
-  // Rutas públicas (siempre permitir)
-  if (pathname.startsWith('/api/auth/')) {
+  // DEBUG: Log en consola del servidor
+  console.log('[Middleware]', {
+    pathname,
+    hasCookie: !!sessionCookie,
+    cookieValue: sessionCookie?.value?.substring(0, 10) + '...',
+  });
+
+  // Rutas de autenticación (siempre permitir)
+  if (pathname.startsWith('/api/auth')) {
+    console.log('[Middleware] Permitiendo /api/auth');
     return NextResponse.next();
   }
 
-  // Verificar si es ruta de admin
-  const isAdminRoute = pathname === '/admin' || pathname.startsWith('/admin/');
-  const isLoginPage = pathname === '/admin/login';
-
-  // Si está en login y ya tiene sesión, ir al admin
-  if (isLoginPage && sessionCookie) {
-    return NextResponse.redirect(new URL('/admin', request.url));
+  // Páginas públicas (siempre permitir)
+  const publicRoutes = ['/', '/verificar', '/como-funciona'];
+  if (publicRoutes.includes(pathname) || pathname.startsWith('/rifa/')) {
+    console.log('[Middleware] Ruta pública:', pathname);
+    return NextResponse.next();
   }
 
-  // Si es ruta de admin y NO tiene sesión, redirigir a login
-  if (isAdminRoute && !sessionCookie) {
-    const loginUrl = new URL('/admin/login', request.url);
-    loginUrl.searchParams.set('from', pathname);
-    return NextResponse.redirect(loginUrl);
+  // Rutas de admin
+  const isAdminRoute = pathname === '/admin' || pathname.startsWith('/admin/');
+  
+  if (isAdminRoute) {
+    console.log('[Middleware] Ruta admin detectada:', pathname);
+    
+    // Si NO tiene cookie, redirigir a login
+    if (!sessionCookie) {
+      console.log('[Middleware] SIN cookie, redirigiendo a login');
+      const loginUrl = new URL('/admin/login', request.url);
+      loginUrl.searchParams.set('from', pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+    
+    console.log('[Middleware] Con cookie, permitiendo acceso');
   }
 
   return NextResponse.next();
 }
 
-// Configurar matcher - IMPORTANTE: el orden importa
+// Matcher explícito y completo
 export const config = {
   matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (route handlers)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public folder
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\..*|_next).*)',
     '/admin/:path*',
     '/admin',
-    '/api/auth/:path*'
+    '/api/auth/:path*',
   ],
 };
