@@ -5,6 +5,7 @@ import { getRifasActivas } from '@/lib/api';
 import type { Rifa } from '@/types';
 import RifaCard from '@/components/RifaCard';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import Link from 'next/link';
 
 export default function Home() {
   const [rifas, setRifas] = useState<Rifa[]>([]);
@@ -28,19 +29,28 @@ export default function Home() {
   return (
     <main className="min-h-screen p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
+
         <header className="text-center mb-8">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
             🎟️ Rifas con causa Cozumel
           </h1>
-          <p className="text-gray-600">
+          <p className="text-gray-600 mb-6">
             Apoyando a nuestra comunidad, una rifa a la vez
           </p>
+
+          <Link
+            href="/verificar"
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-3 px-8 rounded-lg shadow-md transition-all transform hover:scale-105"
+          >
+            <span className="text-xl">🎫</span>
+            <span>Verifica tu Boleto</span>
+          </Link>
         </header>
 
         {loading && <LoadingSpinner />}
 
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 mb-6">
             <p className="font-semibold">Error al cargar las rifas</p>
             <p className="text-sm">{error}</p>
           </div>
@@ -64,6 +74,7 @@ export default function Home() {
             ))}
           </div>
         )}
+
       </div>
     </main>
   );
