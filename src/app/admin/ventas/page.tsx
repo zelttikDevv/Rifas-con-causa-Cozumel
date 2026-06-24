@@ -1,0 +1,254 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { listarTodasLasVentas, getRifasActivas, confirmarPago } from '@/lib/api';
+import type { Rifa } from '@/types';
+import LoadingSpinner from '@/components/LoadingSpinner';
+
+export default function VentasPage() {
+  const [ventas, setVentas] = useState<any[]>([]);
+  const [rifas, setRifas] = useState<Rifa[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [mensaje, setMensaje] = useState<string | null>(null);
+  const [filtroRifa, setFiltroRifa] = useState('');
+  const [filtroEstado, setFiltroEstado] = useState('');
+
+  useEffect(() => {
+    cargarDatos();
+  }, []);
+
+  async function cargarDatos() {
+    setLoading(true);
+    try {
+      const [ventasData, rifasData] = await Promise.all([
+        listarTodasLasVentas(),
+        getRifasActivas(),
+      ]);
+      setVentas(ventasData);
+      setRifas(rifasData);
+    } catch (err) {
+      setMensaje('Error al cargar datos: ' + (err instanceof Error ? err.message : 'Desconocido'));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleConfirmarPago(idRifa: string, idTransaccion: string) {
+    if (!confirm('¿Confirmar que se recibió el pago?')) return;
+
+    try {
+      const resultado = await confirmarPago(idRifa, idTransaccion);
+      if (resultado.ok) {
+        setMensaje(`✅ ${resultado.mensaje}`);
+        await cargarDatos();
+      } else {
+        setMensaje(`❌ Error: ${resultado.mensaje}`);
+      }
+    } catch (err) {
+      setMensaje('Error al confirmar pago: ' + (err instanceof Error ? err.message : 'Desconocido'));
+    }
+
+    setTimeout(() => setMensaje(null), 5000);
+  }
+
+  const extraerTelefono = (cliente: string): string | null => {
+    const match = cliente.match(/Tel:\s*(\d+)/);
+    return match ? match[1] : null;
+  };
+
+  const generarEnlaceContacto = (telefono: string, idTransaccion: string, numeros: string[]) => {
+    const mensaje = `Hola, te contactamos respecto a tu reserva de rifa.\n\n` +
+      `ID de transacción: ${idTransaccion}\n` +
+      `Números: ${numeros.join(', ')}\n\n` +
+      `¿Cómo deseas realizar el pago?`;
+    return `https://wa.me/52${telefono}?text=${encodeURIComponent(mensaje)}`;
+  };
+
+  const formatearFecha = (fechaString: string) => {
+    if (!fechaString || fechaString.trim() === '') return 'Fecha no disponible';
+    try {
+      const fecha = new Date(fechaString);
+      if (isNaN(fecha.getTime())) return 'Fecha inválida';
+      const dia = String(fecha.getDate()).padStart(2, '0');
+      const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+      const anio = fecha.getFullYear();
+      const horas = String(fecha.getHours()).padStart(2, '0');
+      const minutos = String(fecha.getMinutes()).padStart(2, '0');
+      return `${dia}/${mes}/${anio} ${horas}:${minutos}`;
+    } catch {
+      return 'Fecha no disponible';
+    }
+  };
+
+  // Estadísticas
+  const totalVentas = ventas.length;
+  const totalPagadas = ventas.filter(v => v.estadoGeneral === 'PAGADO').length;
+  const totalPendientes = ventas.filter(v => v.estadoGeneral === 'PENDIENTE').length;
+  const totalBoletos = ventas.reduce((acc, v) => acc + v.numeros.length, 0);
+
+  // Filtrar ventas
+  const ventasFiltradas = ventas.filter(v => {
+    if (filtroRifa && v.idRifa !== filtroRifa) return false;
+    if (filtroEstado && v.estadoGeneral !== filtroEstado) return false;
+    return true;
+  });
+
+  return (
+    <main className="max-w-7xl mx-auto p-4 md:p-6">
+      <div className="mb-6">
+        <Link href="/admin" className="text-primary hover:underline text-sm">
+          ← Volver al admin
+        </Link>
+        <h2 className="text-2xl font-bold text-gray-800 mt-2 mb-2">Ventas Generales</h2>
+        <p className="text-gray-600">Todas las ventas de boletos con su estatus</p>
+      </div>
+
+      {/* Estadísticas */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="bg-white rounded-lg shadow-md p-4 border-l-4 border-blue-500">
+          <p className="text-sm text-gray-600">Total Ventas</p>
+          <p className="text-2xl font-bold text-gray-800">{totalVentas}</p>
+        </div>
+        <div className="bg-white rounded-lg shadow-md p-4 border-l-4 border-green-500">
+          <p className="text-sm text-gray-600">Pagadas</p>
+          <p className="text-2xl font-bold text-green-600">{totalPagadas}</p>
+        </div>
+        <div className="bg-white rounded-lg shadow-md p-4 border-l-4 border-yellow-500">
+          <p className="text-sm text-gray-600">Pendientes</p>
+          <p className="text-2xl font-bold text-yellow-600">{totalPendientes}</p>
+        </div>
+        <div className="bg-white rounded-lg shadow-md p-4 border-l-4 border-purple-500">
+          <p className="text-sm text-gray-600">Boletos Vendidos</p>
+          <p className="text-2xl font-bold text-purple-600">{totalBoletos}</p>
+        </div>
+      </div>
+
+      {mensaje && (
+        <div className={`mb-4 p-4 rounded-md ${mensaje.includes('✅') ? 'bg-green-50 border border-green-200 text-green-800' : 'bg-red-50 border border-red-200 text-red-800'}`}>
+          {mensaje}
+        </div>
+      )}
+
+      {/* Filtros */}
+      <div className="bg-white rounded-lg shadow-md p-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Filtrar por rifa:
+            </label>
+            <select
+              value={filtroRifa}
+              onChange={(e) => setFiltroRifa(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="">Todas las rifas</option>
+              {rifas.map((rifa) => (
+                <option key={rifa.id} value={rifa.id}>
+                  {rifa.nombre}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Filtrar por estado:
+            </label>
+            <select
+              value={filtroEstado}
+              onChange={(e) => setFiltroEstado(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="">Todos los estados</option>
+              <option value="PAGADO">Pagadas</option>
+              <option value="PENDIENTE">Pendientes</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {loading && <LoadingSpinner />}
+
+      {!loading && ventasFiltradas.length === 0 && (
+        <div className="bg-white rounded-lg shadow-md p-8 text-center">
+          <p className="text-gray-600 text-lg">No hay ventas que mostrar</p>
+          <p className="text-sm text-gray-500 mt-2">
+            Las ventas aparecerán aquí cuando los clientes compren boletos
+          </p>
+        </div>
+      )}
+
+      {!loading && ventasFiltradas.length > 0 && (
+        <div className="space-y-4">
+          {ventasFiltradas.map((venta) => {
+            const telefono = extraerTelefono(venta.cliente);
+            const esPagada = venta.estadoGeneral === 'PAGADO';
+            
+            return (
+              <div key={venta.idTransaccion} className="bg-white rounded-lg shadow-md p-5 border border-gray-100">
+                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex flex-wrap items-center gap-2 mb-3">
+                      <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-md text-xs font-semibold">
+                        {venta.idTransaccion}
+                      </span>
+                      <span className={`px-3 py-1 rounded-md text-xs font-semibold ${
+                        esPagada 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {esPagada ? '✅ PAGADO' : '⏳ PENDIENTE'}
+                      </span>
+                      <span className="text-sm text-gray-500">
+                        {formatearFecha(venta.fechaReserva)}
+                      </span>
+                    </div>
+                    
+                    <p className="text-sm text-gray-600 mb-2">
+                      <span className="font-semibold">Rifa:</span> {venta.nombreRifa}
+                    </p>
+                    
+                    <p className="text-sm text-gray-600 mb-2">
+                      <span className="font-semibold">Números ({venta.numeros.length}):</span>{' '}
+                      <span className="font-mono font-semibold text-gray-800">
+                        {venta.numeros.join(', ')}
+                      </span>
+                    </p>
+                    
+                    {venta.cliente && (
+                      <p className="text-sm text-gray-600">
+                        <span className="font-semibold">Cliente:</span> {venta.cliente}
+                      </p>
+                    )}
+                  </div>
+
+                  {!esPagada && (
+                    <div className="flex flex-col gap-2">
+                      {telefono && (
+                        <a
+                          href={generarEnlaceContacto(telefono, venta.idTransaccion, venta.numeros)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md text-sm font-semibold text-center transition-colors"
+                        >
+                          💬 Contactar
+                        </a>
+                      )}
+                      
+                      <button
+                        onClick={() => handleConfirmarPago(venta.idRifa, venta.idTransaccion)}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-semibold transition-colors"
+                      >
+                        ✅ Confirmar Pago
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </main>
+  );
+                }
