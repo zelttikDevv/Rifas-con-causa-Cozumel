@@ -1,5 +1,8 @@
 import AdminMenu from '@/components/AdminMenu';
 
+// FORZAR RENDERIZADO DINÁMICO - Esto hace que el middleware se ejecute
+export const dynamic = 'force-dynamic';
+
 export default function AdminLayout({
   children,
 }: {
