@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AdminMenu from '@/components/AdminMenu';
@@ -10,12 +11,61 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    // Verificar autenticación al cargar
+    async function checkAuth() {
+      try {
+        const res = await fetch('/api/auth/me', {
+          method: 'GET',
+          credentials: 'include', // Importante para enviar cookies
+        });
+        
+        if (res.ok) {
+          setIsAuthenticated(true);
+        } else {
+          // No autenticado, redirigir a login
+          router.push('/admin/login');
+        }
+      } catch (error) {
+        console.error('Error verificando autenticación:', error);
+        router.push('/admin/login');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    checkAuth();
+  }, [router]);
 
   const handleLogout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' });
-    router.push('/admin/login');
-    router.refresh();
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      router.push('/admin/login');
+      router.refresh();
+    } catch (error) {
+      console.error('Error al cerrar sesión:', error);
+    }
   };
+
+  // Mostrar loading mientras verifica
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Cargando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Si no está autenticado, no renderizar nada (el useEffect ya redirigió)
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
