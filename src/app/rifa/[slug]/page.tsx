@@ -9,6 +9,7 @@ import Countdown from '@/components/Countdown';
 import BoletosGrid from '@/components/BoletosGrid';
 import ReservaPanel from '@/components/ReservaPanel';
 import ResultadosSection from '@/components/ResultadosSection';
+import ShareButtons from '@/components/ShareButtons';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 const MAX_SELECCION = 5;
@@ -81,11 +82,13 @@ export default function RifaDetallePage() {
     );
   }
 
-  const tipoSorteoLabel = {
+  const tipoSorteoLabel: Record<string, string> = {
     LOTERIA_NACIONAL: '🎰 Lotería Nacional',
     TOMBOLA_FB: '📹 Tómbola en Facebook Live',
     OTRO: '🎲 Otro',
   };
+
+  const urlActual = typeof window !== 'undefined' ? window.location.href : '';
 
   return (
     <main className="min-h-screen p-4 md:p-8">
@@ -103,7 +106,7 @@ export default function RifaDetallePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm mb-4">
             <div className="bg-gray-50 rounded-md p-3">
               <p className="text-gray-500 text-xs">Tipo de sorteo</p>
-              <p className="font-semibold text-gray-800">{tipoSorteoLabel[rifa.tipoSorteo]}</p>
+              <p className="font-semibold text-gray-800">{tipoSorteoLabel[rifa.tipoSorteo] || rifa.tipoSorteo}</p>
             </div>
             <div className="bg-gray-50 rounded-md p-3">
               <p className="text-gray-500 text-xs">Total de boletos</p>
@@ -127,6 +130,15 @@ export default function RifaDetallePage() {
               📹 Ver tómbola en Facebook Live
             </a>
           )}
+        </div>
+
+        {/* Botones para compartir */}
+        <div className="mb-6">
+          <ShareButtons 
+            titulo={rifa.nombre} 
+            descripcion={rifa.descripcion} 
+            url={urlActual} 
+          />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -157,4 +169,4 @@ export default function RifaDetallePage() {
       </div>
     </main>
   );
-}
+            }
