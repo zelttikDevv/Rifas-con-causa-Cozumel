@@ -13,8 +13,9 @@ import type {
 } from '@/types';
 
 const BASE_URL = process.env.NEXT_PUBLIC_APPS_SCRIPT_URL;
-const ADMIN_TOKEN = process.env.NEXT_PUBLIC_ADMIN_TOKEN || '';
 
+// El token ya no se usa en el frontend por seguridad
+// Las API routes de Next.js manejan la autenticación vía cookies
 if (!BASE_URL) {
   console.error('NEXT_PUBLIC_APPS_SCRIPT_URL no está configurada en .env.local');
 }
@@ -134,7 +135,7 @@ export async function reservarBoletos(
 }
 
 // ============================================================
-//  API ADMIN (requiere token)
+//  API ADMIN (autenticación vía middleware de Next.js)
 // ============================================================
 
 /** Crea una nueva rifa */
@@ -151,7 +152,6 @@ export async function crearRifa(rifa: {
 }): Promise<{ ok: boolean; mensaje: string; idRifa?: string; slug?: string }> {
   const data = await post<{ ok: boolean; mensaje: string; idRifa?: string; slug?: string }>({
     action: 'crearRifa',
-    token: ADMIN_TOKEN,
     rifa,
   });
   return data;
@@ -173,7 +173,6 @@ export async function actualizarRifa(
 ): Promise<{ ok: boolean; mensaje: string }> {
   const data = await post<{ ok: boolean; mensaje: string }>({
     action: 'actualizarRifa',
-    token: ADMIN_TOKEN,
     idRifa,
     rifa,
   });
@@ -184,7 +183,6 @@ export async function actualizarRifa(
 export async function eliminarRifa(idRifa: string): Promise<{ ok: boolean; mensaje: string }> {
   const data = await post<{ ok: boolean; mensaje: string }>({
     action: 'eliminarRifa',
-    token: ADMIN_TOKEN,
     idRifa,
   });
   return data;
@@ -197,7 +195,6 @@ export async function confirmarPago(
 ): Promise<{ ok: boolean; mensaje: string }> {
   const data = await post<{ ok: boolean; mensaje: string }>({
     action: 'confirmarPago',
-    token: ADMIN_TOKEN,
     idRifa,
     idTransaccion,
   });
@@ -216,7 +213,6 @@ export async function ingresarResultados(
 ): Promise<{ ok: boolean; mensaje: string }> {
   const data = await post<{ ok: boolean; mensaje: string }>({
     action: 'ingresarResultados',
-    token: ADMIN_TOKEN,
     idRifa,
     resultados,
   });
@@ -227,7 +223,6 @@ export async function ingresarResultados(
 export async function listarReservasPendientes(idRifa?: string): Promise<Reserva[]> {
   const data = await post<ReservasResponse>({
     action: 'listarReservasPendientes',
-    token: ADMIN_TOKEN,
     idRifa: idRifa || '',
   });
   if (!data.ok) throw new Error(data.mensaje || 'Error al listar reservas');
@@ -241,7 +236,6 @@ export async function listarTodasLasVentas(
 ): Promise<any[]> {
   const data = await post<{ ok: boolean; mensaje?: string; ventas: any[] }>({
     action: 'listarTodasLasVentas',
-    token: ADMIN_TOKEN,
     idRifa: idRifa || '',
     estado: estado || '',
   });
