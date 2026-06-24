@@ -1,6 +1,6 @@
+import AdminMenu from '@/components/AdminMenu';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import AdminMenu from '@/components/AdminMenu';
 
 export default function AdminLayout({
   children,
@@ -11,15 +11,9 @@ export default function AdminLayout({
   const sessionCookie = cookieStore.get('admin_session');
   const adminToken = process.env.ADMIN_TOKEN;
 
-  console.log('[Admin Layout]', {
-    hasCookie: !!sessionCookie,
-    hasToken: !!adminToken,
-    cookieMatches: sessionCookie?.value === adminToken,
-  });
-
-  // Verificar autenticación en el servidor
+  // Solo verificar si NO es la página de login
+  // (el layout de login ya tiene su propio layout)
   if (!sessionCookie || sessionCookie.value !== adminToken) {
-    console.log('[Admin Layout] No autenticado, redirigiendo');
     redirect('/admin/login');
   }
 
