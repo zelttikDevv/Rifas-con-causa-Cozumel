@@ -75,6 +75,16 @@ export default function Home() {
           </div>
         )}
 
+        {/* Enlace a "Cómo funciona" */}
+        <div className="mt-12 text-center border-t border-gray-200 pt-6">
+          <Link 
+            href="/como-funciona" 
+            className="text-sm text-gray-500 hover:text-primary transition-colors"
+          >
+            ¿Cómo funciona? • Preguntas frecuentes
+          </Link>
+        </div>
+
       </div>
     </main>
   );
