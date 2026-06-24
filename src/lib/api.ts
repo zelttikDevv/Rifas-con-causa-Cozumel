@@ -155,7 +155,17 @@ export async function listarReservasPendientes(idRifa?: string): Promise<Reserva
   if (!data.ok) throw new Error(data.mensaje || 'Error al listar reservas');
   return data.reservas;
 }
-
+/** Lista todas las ventas (pagadas y pendientes) */
+export async function listarTodasLasVentas(idRifa?: string, estado?: string): Promise<any[]> {
+  const data = await post({
+    action: 'listarTodasLasVentas',
+    token: ADMIN_TOKEN,
+    idRifa: idRifa || '',
+    estado: estado || '',
+  });
+  if (!data.ok) throw new Error(data.mensaje || 'Error al listar ventas');
+  return data.ventas;
+}
 // UTILIDADES
 export function generarIdTransaccion(): string {
   const ahora = new Date();
