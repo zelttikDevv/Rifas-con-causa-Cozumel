@@ -3,9 +3,11 @@ import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
   const sessionCookie = request.cookies.get('admin_session');
-  const isAdminRoute = request.nextUrl.pathname.startsWith('/admin');
-  const isLoginPage = request.nextUrl.pathname === '/admin/login';
-  const isApiAuth = request.nextUrl.pathname.startsWith('/api/auth');
+  const pathname = request.nextUrl.pathname;
+  
+  const isAdminRoute = pathname === '/admin' || pathname.startsWith('/admin/');
+  const isLoginPage = pathname === '/admin/login';
+  const isApiAuth = pathname.startsWith('/api/auth');
 
   // Permitir acceso a rutas de autenticación
   if (isApiAuth) {
@@ -17,10 +19,10 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/admin', request.url));
   }
 
-  // Si intenta acceder a rutas admin sin sesión, redirigir al login
+  // Si intenta acceder a rutas admin (incluyendo /admin) sin sesión, redirigir al login
   if (isAdminRoute && !sessionCookie) {
     const loginUrl = new URL('/admin/login', request.url);
-    loginUrl.searchParams.set('redirect', request.nextUrl.pathname);
+    loginUrl.searchParams.set('redirect', pathname);
     return NextResponse.redirect(loginUrl);
   }
 
@@ -28,5 +30,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/api/auth/:path*'],
+  matcher: ['/admin/:path*', '/admin', '/api/auth/:path*'],
 };
