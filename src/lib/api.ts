@@ -92,9 +92,21 @@ export async function getResultadosRifa(idRifa: string): Promise<Resultado[]> {
 }
 
 /** Verifica si un boleto es ganador */
-export async function verificarBoleto(idTransaccion: string): Promise<any> {
-  const data = await get<any>({ action: 'verificarBoleto', idTransaccion });
-  return data;
+export async function verificarBoleto(
+  idTransaccion: string
+): Promise<{
+  ok: boolean;
+  mensaje?: string;
+  rifa?: Rifa;
+  numeros?: string[];
+  estados?: string[];
+  resultados?: Resultado[];
+  numerosGanadores?: string[];
+  esGanador?: boolean;
+  todosPagados?: boolean;
+}> {
+  const data = await get({ action: 'verificarBoleto', idTransaccion });
+  return data as any;
 }
 
 /** Reserva boletos (genera el enlace de WhatsApp después) */
@@ -130,12 +142,12 @@ export async function crearRifa(rifa: {
   estado?: EstadoRifa;
   urlFacebook?: string;
 }): Promise<{ ok: boolean; mensaje: string; idRifa?: string; slug?: string }> {
-  const data = await post({
+  const data = await post<{ ok: boolean; mensaje: string; idRifa?: string; slug?: string }>({
     action: 'crearRifa',
     token: ADMIN_TOKEN,
     rifa,
   });
-  return data as { ok: boolean; mensaje: string; idRifa?: string; slug?: string };
+  return data;
 }
 
 /** Actualiza una rifa existente */
@@ -152,23 +164,23 @@ export async function actualizarRifa(
     urlFacebook: string;
   }>
 ): Promise<{ ok: boolean; mensaje: string }> {
-  const data = await post({
+  const data = await post<{ ok: boolean; mensaje: string }>({
     action: 'actualizarRifa',
     token: ADMIN_TOKEN,
     idRifa,
     rifa,
   });
-  return data as { ok: boolean; mensaje: string };
+  return data;
 }
 
 /** Cancela una rifa (cambia estado a CANCELADA) */
 export async function eliminarRifa(idRifa: string): Promise<{ ok: boolean; mensaje: string }> {
-  const data = await post({
+  const data = await post<{ ok: boolean; mensaje: string }>({
     action: 'eliminarRifa',
     token: ADMIN_TOKEN,
     idRifa,
   });
-  return data as { ok: boolean; mensaje: string };
+  return data;
 }
 
 /** Confirma el pago de una reserva */
@@ -176,13 +188,13 @@ export async function confirmarPago(
   idRifa: string,
   idTransaccion: string
 ): Promise<{ ok: boolean; mensaje: string }> {
-  const data = await post({
+  const data = await post<{ ok: boolean; mensaje: string }>({
     action: 'confirmarPago',
     token: ADMIN_TOKEN,
     idRifa,
     idTransaccion,
   });
-  return data as { ok: boolean; mensaje: string };
+  return data;
 }
 
 /** Ingresa resultados/ganadores de una rifa */
@@ -195,13 +207,13 @@ export async function ingresarResultados(
     fuente?: string;
   }>
 ): Promise<{ ok: boolean; mensaje: string }> {
-  const data = await post({
+  const data = await post<{ ok: boolean; mensaje: string }>({
     action: 'ingresarResultados',
     token: ADMIN_TOKEN,
     idRifa,
     resultados,
   });
-  return data as { ok: boolean; mensaje: string };
+  return data;
 }
 
 /** Lista reservas pendientes (solo de rifas activas) */
@@ -220,7 +232,7 @@ export async function listarTodasLasVentas(
   idRifa?: string,
   estado?: string
 ): Promise<any[]> {
-  const data = await post({
+  const data = await post<{ ok: boolean; mensaje?: string; ventas: any[] }>({
     action: 'listarTodasLasVentas',
     token: ADMIN_TOKEN,
     idRifa: idRifa || '',
@@ -260,4 +272,4 @@ export function generarEnlaceWhatsApp(
     `🔢 Números: ${numeros.join(', ')}\n\n` +
     `¿Cómo puedo realizar el pago?`;
   return `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
-    }
+                                }
