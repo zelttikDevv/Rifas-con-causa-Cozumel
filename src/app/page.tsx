@@ -1,22 +1,27 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getRifasActivas } from '@/lib/api';
+import { getRifasActivas, getRifasFinalizadas } from '@/lib/api';
 import type { Rifa } from '@/types';
 import RifaCard from '@/components/RifaCard';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import Link from 'next/link';
 
 export default function Home() {
-  const [rifas, setRifas] = useState<Rifa[]>([]);
+  const [rifasActivas, setRifasActivas] = useState<Rifa[]>([]);
+  const [rifasFinalizadas, setRifasFinalizadas] = useState<Rifa[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function cargarRifas() {
       try {
-        const data = await getRifasActivas();
-        setRifas(data);
+        const [activas, finalizadas] = await Promise.all([
+          getRifasActivas(),
+          getRifasFinalizadas(),
+        ]);
+        setRifasActivas(activas);
+        setRifasFinalizadas(finalizadas);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Error desconocido');
       } finally {
@@ -42,7 +47,7 @@ export default function Home() {
             href="/verificar"
             className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-3 px-8 rounded-lg shadow-md transition-all transform hover:scale-105"
           >
-            <span className="text-xl">🎫</span>
+            <span className="text-xl"></span>
             <span>Verifica tu Boleto</span>
           </Link>
         </header>
@@ -56,23 +61,57 @@ export default function Home() {
           </div>
         )}
 
-        {!loading && !error && rifas.length === 0 && (
-          <div className="bg-white rounded-lg shadow-md p-8 text-center">
-            <p className="text-gray-600 text-lg">
-              No hay rifas activas en este momento
-            </p>
-            <p className="text-gray-500 text-sm mt-2">
-              Vuelve pronto para ver nuevas rifas
-            </p>
-          </div>
-        )}
+        {!loading && !error && (
+          <>
+            {/* Sección: Rifas Activas */}
+            <section className="mb-12">
+              <div className="flex items-center gap-3 mb-6">
+                <h2 className="text-2xl font-bold text-gray-800">
+                  Rifas Activas
+                </h2>
+                <span className="bg-green-100 text-green-700 text-sm font-semibold px-3 py-1 rounded-full">
+                  {rifasActivas.length} {rifasActivas.length === 1 ? 'disponible' : 'disponibles'}
+                </span>
+              </div>
 
-        {!loading && !error && rifas.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {rifas.map((rifa) => (
-              <RifaCard key={rifa.id} rifa={rifa} />
-            ))}
-          </div>
+              {rifasActivas.length === 0 ? (
+                <div className="bg-white rounded-lg shadow-md p-8 text-center">
+                  <p className="text-gray-600 text-lg">
+                    No hay rifas activas en este momento
+                  </p>
+                  <p className="text-gray-500 text-sm mt-2">
+                    Vuelve pronto para ver nuevas rifas
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {rifasActivas.map((rifa) => (
+                    <RifaCard key={rifa.id} rifa={rifa} />
+                  ))}
+                </div>
+              )}
+            </section>
+
+            {/* Sección: Rifas Finalizadas */}
+            {rifasFinalizadas.length > 0 && (
+              <section className="mb-8">
+                <div className="flex items-center gap-3 mb-6">
+                  <h2 className="text-2xl font-bold text-gray-800">
+                    Rifas Finalizadas
+                  </h2>
+                  <span className="bg-gray-200 text-gray-700 text-sm font-semibold px-3 py-1 rounded-full">
+                    {rifasFinalizadas.length} {rifasFinalizadas.length === 1 ? 'finalizada' : 'finalizadas'}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {rifasFinalizadas.map((rifa) => (
+                    <RifaCard key={rifa.id} rifa={rifa} />
+                  ))}
+                </div>
+              </section>
+            )}
+          </>
         )}
 
         {/* Enlace a "Cómo funciona" */}
