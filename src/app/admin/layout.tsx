@@ -1,22 +1,10 @@
 import AdminMenu from '@/components/AdminMenu';
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const cookieStore = cookies();
-  const sessionCookie = cookieStore.get('admin_session');
-  const adminToken = process.env.ADMIN_TOKEN;
-
-  // Solo verificar si NO es la página de login
-  // (el layout de login ya tiene su propio layout)
-  if (!sessionCookie || sessionCookie.value !== adminToken) {
-    redirect('/admin/login');
-  }
-
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
       <nav className="bg-white dark:bg-gray-800 shadow-md border-b border-gray-200 dark:border-gray-700">
