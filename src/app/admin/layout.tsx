@@ -1,8 +1,5 @@
-'use client';
-
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 import AdminMenu from '@/components/AdminMenu';
 
 export default function AdminLayout({
@@ -10,61 +7,20 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const cookieStore = cookies();
+  const sessionCookie = cookieStore.get('admin_session');
+  const adminToken = process.env.ADMIN_TOKEN;
 
-  useEffect(() => {
-    // Verificar autenticación al cargar
-    async function checkAuth() {
-      try {
-        const res = await fetch('/api/auth/me', {
-          method: 'GET',
-          credentials: 'include', // Importante para enviar cookies
-        });
-        
-        if (res.ok) {
-          setIsAuthenticated(true);
-        } else {
-          // No autenticado, redirigir a login
-          router.push('/admin/login');
-        }
-      } catch (error) {
-        console.error('Error verificando autenticación:', error);
-        router.push('/admin/login');
-      } finally {
-        setIsLoading(false);
-      }
-    }
+  console.log('[Admin Layout]', {
+    hasCookie: !!sessionCookie,
+    hasToken: !!adminToken,
+    cookieMatches: sessionCookie?.value === adminToken,
+  });
 
-    checkAuth();
-  }, [router]);
-
-  const handleLogout = async () => {
-    try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-      router.push('/admin/login');
-      router.refresh();
-    } catch (error) {
-      console.error('Error al cerrar sesión:', error);
-    }
-  };
-
-  // Mostrar loading mientras verifica
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Cargando...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Si no está autenticado, no renderizar nada (el useEffect ya redirigió)
-  if (!isAuthenticated) {
-    return null;
+  // Verificar autenticación en el servidor
+  if (!sessionCookie || sessionCookie.value !== adminToken) {
+    console.log('[Admin Layout] No autenticado, redirigiendo');
+    redirect('/admin/login');
   }
 
   return (
@@ -77,15 +33,17 @@ export default function AdminLayout({
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            <Link href="/" className="text-sm text-gray-600 dark:text-gray-300 hover:text-primary">
+            <a href="/" className="text-sm text-gray-600 dark:text-gray-300 hover:text-primary">
               Ver sitio
-            </Link>
-            <button
-              onClick={handleLogout}
-              className="text-sm text-red-600 dark:text-red-400 hover:text-red-700 font-semibold"
-            >
-              Cerrar sesión
-            </button>
+            </a>
+            <form action="/api/auth/logout" method="POST">
+              <button
+                type="submit"
+                className="text-sm text-red-600 dark:text-red-400 hover:text-red-700 font-semibold"
+              >
+                Cerrar sesión
+              </button>
+            </form>
           </div>
         </div>
       </nav>
