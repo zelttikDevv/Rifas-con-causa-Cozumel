@@ -8,6 +8,9 @@ export default function AdminMenu() {
         <Link href="/admin" className="block px-3 py-2 rounded-md hover:bg-gray-100 text-sm">
           📋 Reservas Pendientes
         </Link>
+        <Link href="/admin/ventas" className="block px-3 py-2 rounded-md hover:bg-gray-100 text-sm">
+          💰 Ventas Generales
+        </Link>
         <Link href="/admin/crear-rifa" className="block px-3 py-2 rounded-md hover:bg-gray-100 text-sm">
           ➕ Crear Nueva Rifa
         </Link>
