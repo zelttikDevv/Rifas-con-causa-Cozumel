@@ -40,8 +40,8 @@ export default function Countdown({ fechaFin }: CountdownProps) {
 
   if (expirado) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
-        <p className="text-red-700 font-semibold">⏰ Esta rifa ha finalizado</p>
+      <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 text-center">
+        <p className="text-red-700 dark:text-red-400 font-semibold">⏰ Esta rifa ha finalizado</p>
       </div>
     );
   }
@@ -54,20 +54,20 @@ export default function Countdown({ fechaFin }: CountdownProps) {
   ];
 
   return (
-    <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-      <p className="text-center text-sm text-orange-800 font-semibold mb-3">
+    <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4">
+      <p className="text-center text-sm text-orange-800 dark:text-orange-300 font-semibold mb-3">
         ⏰ Tiempo restante para el sorteo
       </p>
       <div className="grid grid-cols-4 gap-2">
         {bloques.map((b) => (
-          <div key={b.label} className="bg-white rounded-md p-2 text-center">
-            <div className="text-2xl font-bold text-orange-600">
+          <div key={b.label} className="bg-white dark:bg-gray-800 rounded-md p-2 text-center shadow-sm">
+            <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
               {String(b.valor).padStart(2, '0')}
             </div>
-            <div className="text-xs text-gray-600">{b.label}</div>
+            <div className="text-xs text-gray-600 dark:text-gray-400">{b.label}</div>
           </div>
         ))}
       </div>
     </div>
   );
-              }
+}
