@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 
 export async function POST() {
-  const response = NextResponse.json({ ok: true, mensaje: 'Logout exitoso' });
+  console.log('[Logout API] Cerrando sesión');
   
-  response.cookies.delete('admin_session');
+  const cookieStore = cookies();
+  cookieStore.delete('admin_session');
+  
+  const response = NextResponse.json({ ok: true, mensaje: 'Logout exitoso' });
   
   return response;
 }
